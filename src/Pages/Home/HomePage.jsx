@@ -45,6 +45,18 @@ const Search = styled("div")(({ theme }) => ({
 }));
 
 
+const StyledInputBase = styled(InputBase)(({ theme }) => ({
+  color: "inherit",
+  "& .MuiInputBase-input": {
+    padding: theme.spacing(1, 1, 1, 0),
+    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
+    transition: theme.transitions.create("width"),
+    width: "100%",
+    [theme.breakpoints.up("md")]: {
+      width: "20ch",
+    },
+  },
+}));
 
 export default function HomePage() {
   const [openDialog, setOpenDialog] = React.useState(false);
@@ -163,19 +175,6 @@ export default function HomePage() {
     setRerender(!rerender);
   };
 
-  const StyledInputBase = styled(InputBase)(({ theme }) => ({
-    color: "inherit",
-    "& .MuiInputBase-input": {
-      padding: theme.spacing(1, 1, 1, 0),
-      paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-      transition: theme.transitions.create("width"),
-      width: "100%",
-      [theme.breakpoints.up("md")]: {
-        width: "20ch",
-      },
-    },
-  }));
-
   return (
     <div>
       <Box sx={{ flexGrow: 1 }}>
@@ -205,14 +204,14 @@ export default function HomePage() {
             </Link>
             <Search>
               <IconButton onClick={handleSearch}>
-                <SearchIcon />
+                    <SearchIcon />
               </IconButton>
               <StyledInputBase
                 value={searchQuery}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search…"
+                placeholder="Search Brand or Name"
                 inputProps={{ "aria-label": "search" }}
-              />
+            />
             </Search>
             <Tooltip title="Sort Product">
               <IconButton onClick={handleSortByPrice}>
@@ -252,6 +251,7 @@ export default function HomePage() {
           sx={{
             display: "flex",
             flexWrap: "wrap",
+            width: "100%",
             gap: "10px",
             height: "100%",
           }}
