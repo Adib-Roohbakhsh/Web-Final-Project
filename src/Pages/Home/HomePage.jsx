@@ -44,40 +44,7 @@ const Search = styled("div")(({ theme }) => ({
   },
 }));
 
-const SearchIconWrapper = styled("div")(({ theme }) => ({
-  padding: theme.spacing(0, 2),
-  height: "100%",
-  position: "absolute",
-  pointerEvents: "none",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-}));
 
-const StyledInputBase = styled(InputBase)(({ theme }) => ({
-  color: "inherit",
-  "& .MuiInputBase-input": {
-    padding: theme.spacing(1, 1, 1, 0),
-    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-    transition: theme.transitions.create("width"),
-    width: "100%",
-    [theme.breakpoints.up("md")]: {
-      width: "20ch",
-    },
-  },
-}));
-
-const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: 400,
-  bgcolor: "background.paper",
-  border: "2px solid #000",
-  boxShadow: 24,
-  p: 4,
-};
 
 export default function HomePage() {
   const [openDialog, setOpenDialog] = React.useState(false);
@@ -85,6 +52,7 @@ export default function HomePage() {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [products, setProducts] = useState([]);
   const navigate = useNavigate();
+  const [rerender, setRerender] = useState(false);
 
   const hanleOpenPage = (productId) => {
     navigate(`/productPage/${productId}`);
@@ -95,7 +63,7 @@ export default function HomePage() {
   useEffect(() => {
     loadProducts();
     setIsAdmin(userAuth?.is_admin || false);
-  }, []);
+  }, [rerender]);
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
@@ -190,9 +158,9 @@ export default function HomePage() {
       console.log(error);
     }
   };
-
   const logout = () => {
     localStorage.setItem("userAuth", null);
+    setRerender(!rerender);
   };
 
   const StyledInputBase = styled(InputBase)(({ theme }) => ({
@@ -213,7 +181,15 @@ export default function HomePage() {
       <Box sx={{ flexGrow: 1 }}>
         <AppBar position="fixed">
           <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-            <Link to="/LoginPage">
+            <Link
+              to="/LoginPage"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                textDecoration: "none",
+                color: "inherit",
+              }}
+            >
               <IconButton
                 size="large"
                 edge="end"
@@ -223,6 +199,9 @@ export default function HomePage() {
               >
                 <AccountCircle />
               </IconButton>
+              <Typography variant="body1" sx={{ ml: 1 }}>
+                Login / Sign Up
+              </Typography>
             </Link>
             <Search>
               <IconButton onClick={handleSearch}>
@@ -237,7 +216,12 @@ export default function HomePage() {
             </Search>
             <Tooltip title="Sort Product">
               <IconButton onClick={handleSortByPrice}>
-                <ArrowDownwardIcon />
+                <Box display="flex" alignItems="center">
+                  <ArrowDownwardIcon />
+                  <Typography variant="body2" sx={{ marginLeft: 1 }}>
+                    Sort by Price
+                  </Typography>
+                </Box>
               </IconButton>
             </Tooltip>
 
@@ -282,6 +266,14 @@ export default function HomePage() {
                 padding: "15px",
                 height: "100%",
                 width: "30%",
+                border: "1px solid #ccc",
+                borderRadius: "10px",
+                boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
+                transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                "&:hover": {
+                  transform: "scale(1.1)",
+                  boxShadow: "0px 8px 20px rgba(0, 0, 0, 0.3)",
+                },
               }}
             >
               <CardMedia
@@ -289,18 +281,36 @@ export default function HomePage() {
                 height="270"
                 image={t.product_image}
                 alt="phone image"
-              ></CardMedia>
-              <CardContent>
-                <Typography variant="h6" color="text.secondary">
+                sx={{ borderRadius: "8px" }}
+              />
+              <CardContent sx={{ textAlign: "center" }}>
+                <Typography variant="h6" color="text.primary" fontWeight="bold">
                   {t.brand}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body1" color="text.secondary">
                   {t.name}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body1" color="primary" fontWeight="bold">
                   {t.price}
                 </Typography>
-                <div onClick={() => hanleOpenPage(t.id)}>Show Details</div>
+                <Box
+                  onClick={() => hanleOpenPage(t.id)}
+                  sx={{
+                    marginTop: "10px",
+                    padding: "8px 12px",
+                    backgroundColor: "#1976d2",
+                    color: "white",
+                    borderRadius: "5px",
+                    display: "inline-block",
+                    cursor: "pointer",
+                    transition: "background 0.3s",
+                    "&:hover": {
+                      backgroundColor: "#155a9a",
+                    },
+                  }}
+                >
+                  Show Details
+                </Box>
               </CardContent>
             </CardActionArea>
           ))}

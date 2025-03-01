@@ -11,20 +11,32 @@ import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import { useEffect, useState } from "react";
 import SvgIcon from "@mui/material/SvgIcon";
 import Tooltip from "@mui/material/Tooltip";
+import CircularProgress from "@mui/material/CircularProgress";
 import axios from "axios";
+import Alert from "@mui/material/Alert";
+import { Link } from "react-router-dom";
 
-export default function InputAdornments() {
-  <link
-    rel="stylesheet"
-    href="https://fonts.googleapis.com/icon?family=Material+Icons"
-  />;
+export default function LoginForm() {
+  const [showPassword, setShowPassword] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [openDialog, setOpenDialog] = useState(false);
+  const [loginError, setLoginError] = useState("");
+  const [signupError, setSignupError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const [newUserData, setNewUserData] = useState({
+    username: "",
+    password: "",
+  });
+
   function HomeIcon(props) {
     return (
       <SvgIcon {...props}>
@@ -33,197 +45,200 @@ export default function InputAdornments() {
     );
   }
 
-  const [showPassword, setShowPassword] = React.useState(false);
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [openDialog, setOpenDialog] = React.useState(false);
- 
-  const handleOpenAddDialog = () => {
-    setOpenDialog(true);
-  };
-  const handleCloseAddDialog = () => {
-    setOpenDialog(false);
-  };
-
-  const navigate = useNavigate();
-
-  const handleClickShowPassword = () => setShowPassword((show) => !show);
-
-  const handleMouseDownPassword = (event) => {
-    event.preventDefault();
-  };
-
-  const [newUserData, setNewUserData] = useState({
-    username: "",
-    password: "",
-  });
-
-  const handleInputChange = (event) => {
-    const { name, value } = event.target;
-    setNewUserData({ ...newUserData, [name]: value });
-  };
-
   useEffect(() => {
     const userAuth = JSON.parse(localStorage.getItem("userAuth"));
-    if (userAuth && userAuth.id) {
-      navigate("/");
-    }
-  }, []);
+    if (userAuth?.id) navigate("/");
+  }, [navigate]);
 
-  const handleSend = async () => {
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoginError("");
+    if (!username || !password) {
+      setLoginError("Please fill in all fields");
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      const { data } = await axios.post("http://localhost:3000/users", {
+      const { data } = await axios.post("http://localhost:3000/login", {
         username,
         password,
       });
-      if (data.error) {
-        console.log("Login failed:", data.message);
-      } else {
-        localStorage.setItem("userAuth", JSON.stringify(data.user));
-        navigate("/");
-      }
+      localStorage.setItem("userAuth", JSON.stringify(data.user));
+      navigate("/");
     } catch (error) {
-      console.log("Error during login:", error);
+      setLoginError(error.response?.data?.message || "Login failed");
+    } finally {
+      setIsLoading(false);
     }
   };
-  const handleSignUp = async () => {
+
+  const handleSignUp = async (e) => {
+    e.preventDefault();
+    setSignupError("");
+
+    if (!newUserData.username || !newUserData.password) {
+      setSignupError("Please fill in all fields");
+      return;
+    }
+
+    if (newUserData.password.length < 6) {
+      setSignupError("Password must be at least 6 characters");
+      return;
+    }
+
     try {
-      const { username, password } = newUserData;
-      const { data } = await axios.post("http://localhost:3000/users", {
-        username,
-        password,
-      });
-      handleCloseAddDialog();
-      if (data.error) {
-        console.log("Sign Up failed");
-      }
+      await axios.post("http://localhost:3000/users", newUserData);
+      setOpenDialog(false);
+      setNewUserData({ username: "", password: "" });
+      alert("Account created successfully! Please login.");
     } catch (error) {
-      console.log("This account exiest:", error);
+      setSignupError(error.response?.data?.message || "Signup failed");
     }
   };
-  <link
-    rel="stylesheet"
-    href="https://fonts.googleapis.com/icon?family=Material+Icons"
-  />;
 
   return (
-    <div
-      style={{
+    <Box
+      sx={{
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
         minHeight: "100vh",
-        padding: "0 20px",
+        p: 2,
       }}
     >
-      <div style={{ maxWidth: "400px", width: "100%" }}>
-        <h2 style={{ textAlign: "center" }}>LOGIN</h2>
+      <Box sx={{ maxWidth: 400, width: "100%", p: 3 }}>
         <Box
+          component="form"
+          onSubmit={handleLogin}
           sx={{
-            padding: "20px",
-            margin: "20px",
             display: "flex",
             flexDirection: "column",
-            textAlign: "center",
+            gap: 2,
+            width: "100%",
           }}
         >
-          <div>
-            <TextField
-              sx={{width: "72%" }}
-              helperText=" "
-              id="demo-helper-text-aligned-no-helper"
-              label="Userame"
-              onChange={(e) => setUsername(e.target.value)}
-            />
-            <FormControl sx={{ m: 1 }} variant="outlined">
-              <InputLabel htmlFor="outlined-adornment-password">
-                Password
-              </InputLabel>
-              <OutlinedInput
-                id="outlined-adornment-password"
-                type={showPassword ? "text" : "password"}
-                onChange={(e) => setPassword(e.target.value)}
-                endAdornment={
-                  <InputAdornment position="end">
-                    <IconButton
-                      aria-label="toggle password visibility"
-                      onClick={handleClickShowPassword}
-                      onMouseDown={handleMouseDownPassword}
-                      edge="end"
-                    >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                }
-                label="Password"
-              />
-            </FormControl>
-            <Button sx={{margin:'5px'}} variant="contained" onClick={handleSend}>
-              Login
-            </Button>
-            <br />
-            <br />
-            <div>
-              Do you have account?
-              <Link onClick={handleOpenAddDialog}>Sign Up</Link>
-            </div>
+          <h2 style={{ textAlign: "center", marginBottom: 0 }}>Welcome Back</h2>
+          <p style={{ textAlign: "center", color: "#666", marginTop: 0 }}>
+            Please login to continue
+          </p>
 
-            <Dialog
-              open={openDialog}
-              onClose={handleCloseAddDialog}
-              PaperProps={{
-                component: "form",
-                onSubmit: (event) => {
-                  event.preventDefault();
-                },
-              }}
+          {loginError && <Alert severity="error">{loginError}</Alert>}
+
+          <TextField
+            fullWidth
+            label="Username"
+            variant="outlined"
+            autoComplete="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+
+          <FormControl fullWidth variant="outlined" required>
+            <InputLabel>Password</InputLabel>
+            <OutlinedInput
+              label="Password"
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              endAdornment={
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={() => setShowPassword(!showPassword)}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              }
+            />
+          </FormControl>
+
+          <Button
+            type="submit"
+            variant="contained"
+            size="large"
+            disabled={isLoading}
+            sx={{ mt: 2 }}
+          >
+            {isLoading ? <CircularProgress size={24} /> : "Login"}
+          </Button>
+
+          <Box sx={{ textAlign: "center", mt: 2 }}>
+            Dont have an account?{" "}
+            <Button
+              variant="text"
+              onClick={() => setOpenDialog(true)}
+              sx={{ textTransform: "none" }}
             >
-              <DialogTitle sx={{ textAlign: "center", fontFamily: "bold" }}>
-                SIGN UP
-              </DialogTitle>
-              <br />
-              <DialogContent>
-                <TextField
-                  label="Username"
-                  name="username"
-                  value={newUserData.username}
-                  onChange={handleInputChange}
-                />
-                <br />
-                <br />
-                <TextField
-                  label="Password"
-                  name="password"
-                  type="password"
-                  value={newUserData.password}
-                  onChange={handleInputChange}
-                />
-              </DialogContent>
-              <DialogActions>
-                <Button type="submit" onClick={handleCloseAddDialog}>
-                  Cancel
-                </Button>
-                <Button type="submit" onClick={handleSignUp}>
-                  Sign Up
-                </Button>
-              </DialogActions>
-            </Dialog>
-          </div>
-          <Tooltip title="Back to Home Page">
-            <Link
-              to="/"
-              style={{
-                textAlign: "center",
-                display: "block",
-                marginTop: "20px",
-              }}
-            >
-              {" "}
-              <HomeIcon color="primary" />
-            </Link>
-          </Tooltip>
+              Sign Up
+            </Button>
+          </Box>
         </Box>
-      </div>
-    </div>
+
+        <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+          <Box component="form" onSubmit={handleSignUp} sx={{ p: 2 }}>
+            <DialogTitle sx={{ textAlign: "center" }}>
+              Create Account
+            </DialogTitle>
+            <DialogContent
+              sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+            >
+              {signupError && <Alert severity="error">{signupError}</Alert>}
+
+              <TextField
+                fullWidth
+                label="Username"
+                value={newUserData.username}
+                name="username"
+                onChange={(e) =>
+                  setNewUserData({ ...newUserData, username: e.target.value })
+                }
+                required
+              />
+
+              <TextField
+                fullWidth
+                label="Password"
+                type="password"
+                value={newUserData.password}
+                name="password"
+                onChange={(e) =>
+                  setNewUserData({ ...newUserData, password: e.target.value })
+                }
+                helperText="At least 6 characters"
+                required
+              />
+            </DialogContent>
+            <DialogActions sx={{ justifyContent: "space-between", p: 3 }}>
+              <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
+              <Button type="submit" variant="contained">
+                Create Account
+              </Button>
+            </DialogActions>
+          </Box>
+        </Dialog>
+
+        <Tooltip title="Back to Home Page">
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Button
+              component={Link}
+              to="/"
+              sx={{ display: "block", mx: "auto", mt: 4 }}
+              startIcon={<HomeIcon color="primary" />}
+            ></Button>
+          </Box>
+        </Tooltip>
+      </Box>
+    </Box>
   );
 }
