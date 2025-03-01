@@ -1,26 +1,26 @@
 import * as React from "react";
-import Box from "@mui/material/Box";
-import IconButton from "@mui/material/IconButton";
-import OutlinedInput from "@mui/material/OutlinedInput";
-import InputLabel from "@mui/material/InputLabel";
-import InputAdornment from "@mui/material/InputAdornment";
-import FormControl from "@mui/material/FormControl";
-import Visibility from "@mui/icons-material/Visibility";
-import VisibilityOff from "@mui/icons-material/VisibilityOff";
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import { useNavigate } from "react-router-dom";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import DialogActions from "@mui/material/DialogActions";
-import { useEffect, useState } from "react";
-import SvgIcon from "@mui/material/SvgIcon";
-import Tooltip from "@mui/material/Tooltip";
-import CircularProgress from "@mui/material/CircularProgress";
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
-import Alert from "@mui/material/Alert";
-import { Link } from "react-router-dom";
+import {
+  Box,
+  IconButton,
+  OutlinedInput,
+  InputLabel,
+  InputAdornment,
+  FormControl,
+  TextField,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Alert,
+  Tooltip,
+  CircularProgress,
+  SvgIcon
+} from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -30,6 +30,8 @@ export default function LoginForm() {
   const [loginError, setLoginError] = useState("");
   const [signupError, setSignupError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+
   const navigate = useNavigate();
 
   const [newUserData, setNewUserData] = useState({
@@ -77,7 +79,7 @@ export default function LoginForm() {
     e.preventDefault();
     setSignupError("");
 
-    if (!newUserData.username || !newUserData.password) {
+    if (!newUserData.username || !newUserData.password || !confirmPassword) {
       setSignupError("Please fill in all fields");
       return;
     }
@@ -87,10 +89,16 @@ export default function LoginForm() {
       return;
     }
 
+    if (newUserData.password !== confirmPassword) {
+      setSignupError("Passwords do not match");
+      return;
+    }
+
     try {
       await axios.post("http://localhost:3000/users", newUserData);
       setOpenDialog(false);
       setNewUserData({ username: "", password: "" });
+      setConfirmPassword("");
       alert("Account created successfully! Please login.");
     } catch (error) {
       setSignupError(error.response?.data?.message || "Signup failed");
@@ -168,7 +176,7 @@ export default function LoginForm() {
           </Button>
 
           <Box sx={{ textAlign: "center", mt: 2 }}>
-            Dont have an account?{" "}
+            Don't have an account?{" "}
             <Button
               variant="text"
               onClick={() => setOpenDialog(true)}
@@ -193,7 +201,6 @@ export default function LoginForm() {
                 fullWidth
                 label="Username"
                 value={newUserData.username}
-                name="username"
                 onChange={(e) =>
                   setNewUserData({ ...newUserData, username: e.target.value })
                 }
@@ -205,11 +212,19 @@ export default function LoginForm() {
                 label="Password"
                 type="password"
                 value={newUserData.password}
-                name="password"
                 onChange={(e) =>
                   setNewUserData({ ...newUserData, password: e.target.value })
                 }
                 helperText="At least 6 characters"
+                required
+              />
+
+              <TextField
+                fullWidth
+                label="Confirm Password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 required
               />
             </DialogContent>
